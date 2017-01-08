@@ -128,20 +128,20 @@ func (d0 *digest) Sum(in []byte) []byte {
 }
 
 func (d *digest) checkSum() [Size]byte {
-	len := d.len
+	l := d.len
 	// Padding. Add a 1 bit and 0 bits until 56 bytes mod 64.
 	var tmp [64]byte
 	tmp[0] = 0x80
-	if len%64 < 56 {
-		d.Write(tmp[0 : 56-len%64])
+	if l%64 < 56 {
+		d.Write(tmp[0 : 56-l%64])
 	} else {
-		d.Write(tmp[0 : 64+56-len%64])
+		d.Write(tmp[0 : 64+56-l%64])
 	}
 
 	// Length in bits.
-	len <<= 3
+	l <<= 3
 	for i := uint(0); i < 8; i++ {
-		tmp[i] = byte(len >> (56 - 8*i))
+		tmp[i] = byte(l >> (56 - 8*i))
 	}
 	d.Write(tmp[0:8])
 
@@ -163,6 +163,30 @@ func (d *digest) checkSum() [Size]byte {
 	}
 
 	return digest
+}
+
+func (d *digest) SumNoPadding(in []byte) []byte {
+	if d.len%BlockSize != 0 {
+		panic("SumNoPadding can only be called after writing a multiple of BlockSize")
+	}
+
+	h := d.h[:]
+	if d.is224 {
+		h = d.h[:7]
+	}
+
+	var digest [Size]byte
+	for i, s := range h {
+		digest[i*4] = byte(s >> 24)
+		digest[i*4+1] = byte(s >> 16)
+		digest[i*4+2] = byte(s >> 8)
+		digest[i*4+3] = byte(s)
+	}
+
+	if d.is224 {
+		return append(in, digest[:Size224]...)
+	}
+	return append(in, digest[:]...)
 }
 
 // Sum256 returns the SHA256 checksum of the data.

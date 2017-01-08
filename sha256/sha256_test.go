@@ -132,6 +132,15 @@ func TestGolden(t *testing.T) {
 	}
 }
 
+func TestNoPadding(t *testing.T) {
+	d := New()
+	d.Write(make([]byte, 64))
+	s := fmt.Sprintf("%x", d.(*digest).SumNoPadding(nil))
+	if s != "da5698be17b9b46962335799779fbeca8ce5d491c0d26243bafef9ea1837a9d8" {
+		t.Fatalf("got %s, want da5698be17b9b46962335799779fbeca8ce5d491c0d26243bafef9ea1837a9d8", s)
+	}
+}
+
 func TestSize(t *testing.T) {
 	c := New()
 	if got := c.Size(); got != Size {
