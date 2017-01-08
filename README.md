@@ -1,10 +1,19 @@
 # zcash-mini
 
-`zcash-mini` is a minimal, portable Go Zcash wallet.
+`zcash-mini` is a minimal, portable Zcash wallet generator in Go.
 
 ```
 $ go get -u github.com/FiloSottile/zcash-mini
+
+ - or -
+
+$ git clone https://github.com/FiloSottile/zcash-mini
+$ cd zcash-mini && make && mv ./bin/zcash-mini /usr/local/bin/
+```
+
+```
 $ zcash-mini
+
 ###############################################################
 #
 #  Here is your new z-address
