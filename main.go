@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
@@ -57,6 +58,9 @@ var template = `%s
 `
 
 func main() {
+	simpleMode := flag.Bool("simple", false, "output only address and key")
+	flag.Parse()
+
 	rawKey := zcash.GenerateKey()
 	rawAddr, err := zcash.KeyToAddress(rawKey)
 	if err != nil {
@@ -66,5 +70,9 @@ func main() {
 	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
 	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
 
-	fmt.Printf(template, logo, addr, key)
+	if *simpleMode {
+		fmt.Printf("%s\n%s\n", addr, key)
+	} else {
+		fmt.Printf(template, logo, addr, key)
+	}
 }
