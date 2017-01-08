@@ -46,6 +46,10 @@ var template = `%s
 #
 #      %s
 #
+#  and here is the viewing key (not yet supported by the full node)
+#
+#      %s
+#
 #  KEEP IT SAFE, IT HAS NOT BEEN SAVED ANYWHERE
 #
 #  To spend, import it with
@@ -65,13 +69,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	rawViewKey, err := zcash.KeyToViewingKey(rawKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
 	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
+	viewKey := zcash.Base58Encode(rawViewKey, zcash.ViewingKey)
 
 	if *simpleMode {
 		fmt.Printf("%s\n%s\n", addr, key)
 	} else {
-		fmt.Printf(template, logo, addr, key)
+		fmt.Printf(template, logo, addr, key, viewKey)
 	}
 }
