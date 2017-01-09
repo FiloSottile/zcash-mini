@@ -75,7 +75,7 @@ func main() {
 	}
 	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
 	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
-	viewKey := zcash.Base58Encode(rawViewKey, zcash.ViewingKey)
+	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
 
 	if *simpleMode {
 		fmt.Printf("%s\n%s\n", addr, key)

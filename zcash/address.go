@@ -15,7 +15,7 @@ var (
 	TestSpendingKey = [2]byte{0xAC, 0x08}
 	ProdAddress     = [2]byte{0x16, 0x9A}
 	TestAddress     = [2]byte{0x16, 0xB6}
-	ViewingKey      = [2]byte{0, 0} //Is this specified yet?
+	ProdViewingKey  = [2]byte{0, 0} // Not yet specified - WILL CHANGE
 )
 
 var (
@@ -96,7 +96,7 @@ func KeyToViewingKey(key []byte) ([]byte, error) {
 		return nil, ErrInvalidKey
 	}
 	viewKey := make([]byte, 32)
-	prfAddr(viewKey[:], key, 1)
+	prfAddr(viewKey, key, 1)
 	return viewKey, nil
 }
 
