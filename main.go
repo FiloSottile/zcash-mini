@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/FiloSottile/zcash-mini/zcash"
 )
@@ -61,21 +62,36 @@ var template = `%s
 `
 
 func main() {
-	simpleMode := flag.Bool("simple", false, "output only address and key")
+	simpleMode   := flag.Bool("simple", false, "output only address and key")
+	vanityPrefix := flag.String("prefix", "", "search for an address with a given prefix")
 	flag.Parse()
 
-	rawKey := zcash.GenerateKey()
-	rawAddr, err := zcash.KeyToAddress(rawKey)
-	if err != nil {
-		log.Fatal(err)
+	var key, addr, viewKey string
+
+	for {
+		rawKey := zcash.GenerateKey()
+		rawAddr, err := zcash.KeyToAddress(rawKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rawViewKey, err := zcash.KeyToViewingKey(rawKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		key = zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
+		addr = zcash.Base58Encode(rawAddr, zcash.ProdAddress)
+		viewKey = zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
+
+		if *vanityPrefix != "" {
+			if strings.HasPrefix(addr, *vanityPrefix) {
+				break
+			}
+
+			continue
+		}
+
+		break
 	}
-	rawViewKey, err := zcash.KeyToViewingKey(rawKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
-	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
-	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
 
 	if *simpleMode {
 		fmt.Printf("%s\n%s\n", addr, key)
