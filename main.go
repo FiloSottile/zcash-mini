@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/FiloSottile/zcash-mini/zcash"
@@ -64,9 +65,21 @@ var template = `%s
 func main() {
 	simpleMode   := flag.Bool("simple", false, "output only address and key")
 	vanityPrefix := flag.String("prefix", "", "search for an address with a given prefix")
+	vanityRegexp := flag.String("regexp", "", "search for an address with a given regexp")
 	flag.Parse()
 
 	var key, addr, viewKey string
+	var vanityRegexpCompiled *regexp.Regexp
+
+	if *vanityRegexp != "" {
+		r, err := regexp.Compile(*vanityRegexp)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		vanityRegexpCompiled = r
+	}
 
 	for {
 		rawKey := zcash.GenerateKey()
@@ -84,6 +97,12 @@ func main() {
 
 		if *vanityPrefix != "" {
 			if strings.HasPrefix(addr, *vanityPrefix) {
+				break
+			}
+
+			continue
+		} else if *vanityRegexp != "" {
+			if vanityRegexpCompiled.MatchString(addr) {
 				break
 			}
 
