@@ -25,7 +25,7 @@ func TestKeyToAddress(t *testing.T) {
 		}
 		ourAddr := Base58Encode(rawAddr, ProdAddress)
 		if g.addr != ourAddr {
-			t.Errorf("%d: addr %s, want %s", ourAddr, g.addr)
+			t.Errorf("%d: addr %s, want %s", i, ourAddr, g.addr)
 		}
 	}
 }
@@ -35,5 +35,17 @@ func TestGenerateKey(t *testing.T) {
 	_, err := KeyToAddress(key)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestGenerateVanityKey(t *testing.T) {
+	key := GenerateVanityKey("zcaa", ProdAddress)
+	rawAddr, err := KeyToAddress(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := Base58Encode(rawAddr, ProdAddress)
+	if addr[:4] != "zcaa" {
+		t.Fatal(addr)
 	}
 }

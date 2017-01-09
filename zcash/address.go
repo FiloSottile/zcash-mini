@@ -4,6 +4,7 @@ package zcash
 import (
 	"crypto/rand"
 	"errors"
+	"strings"
 
 	"github.com/FiloSottile/zcash-mini/sha256"
 	"github.com/btcsuite/btcutil/base58"
@@ -108,4 +109,25 @@ func GenerateKey() []byte {
 	}
 	b[0] &= 0x0f
 	return b
+}
+
+// GenerateVanityKey generates a raw spending key that when converted to an
+// address and encoded in Base58Check with the given version, has the given prefix.
+func GenerateVanityKey(prefix string, version [2]byte) []byte {
+	key := make([]byte, 32)
+	addrHalf := make([]byte, 2+32+32+4)
+	copy(addrHalf, version[:])
+	for {
+		if _, err := rand.Read(key); err != nil {
+			panic(err)
+		}
+		key[0] &= 0x0f
+
+		prfAddr(addrHalf[2:], key, 0)
+
+		encoded := base58.Encode(addrHalf)
+		if strings.HasPrefix(encoded, prefix) {
+			return key
+		}
+	}
 }

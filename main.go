@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 
 	"github.com/FiloSottile/zcash-mini/zcash"
 )
@@ -54,7 +53,7 @@ var template = `%s
 #
 #  KEEP IT SAFE, IT HAS NOT BEEN SAVED ANYWHERE
 #
-#  To spend, import it with
+#  To spend, import the secret key with
 #
 #      zcash-cli z_importkey KEY rescan
 #
@@ -63,22 +62,45 @@ var template = `%s
 `
 
 func main() {
-	simpleMode   := flag.Bool("simple", false, "output only address and key")
+	simpleMode := flag.Bool("simple", false, "output only address and key")
 	vanityPrefix := flag.String("prefix", "", "search for an address with a given prefix")
-	vanityRegexp := flag.String("regexp", "", "search for an address with a given regexp")
+	vanityRegexp := flag.String("regexp", "", "search for an address with a given regexp - SLOW")
 	flag.Parse()
 
-	var key, addr, viewKey string
-	var vanityRegexpCompiled *regexp.Regexp
+	var rawKey []byte
+	switch {
+	case *vanityPrefix != "":
+		rawKey = zcash.GenerateVanityKey(*vanityPrefix, zcash.ProdAddress)
+	case *vanityRegexp != "":
+		rawKey = GenerateVanityKeyRegexp(*vanityRegexp)
+	default:
+		rawKey = zcash.GenerateKey()
+	}
 
-	if *vanityRegexp != "" {
-		r, err := regexp.Compile(*vanityRegexp)
+	rawAddr, err := zcash.KeyToAddress(rawKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rawViewKey, err := zcash.KeyToViewingKey(rawKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
+	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
+	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
 
-		vanityRegexpCompiled = r
+	if *simpleMode {
+		fmt.Printf("%s\n%s\n", addr, key)
+	} else {
+		fmt.Printf(template, logo, addr, key, viewKey)
+	}
+}
+
+func GenerateVanityKeyRegexp(vanityRegexp string) []byte {
+	r, err := regexp.Compile(vanityRegexp)
+	if err != nil {
+		log.Fatal("Failed to compile the regular expression:", err)
 	}
 
 	for {
@@ -87,34 +109,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		rawViewKey, err := zcash.KeyToViewingKey(rawKey)
-		if err != nil {
-			log.Fatal(err)
+		addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
+
+		if r.MatchString(addr) {
+			return rawKey
 		}
-		key = zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
-		addr = zcash.Base58Encode(rawAddr, zcash.ProdAddress)
-		viewKey = zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
-
-		if *vanityPrefix != "" {
-			if strings.HasPrefix(addr, *vanityPrefix) {
-				break
-			}
-
-			continue
-		} else if *vanityRegexp != "" {
-			if vanityRegexpCompiled.MatchString(addr) {
-				break
-			}
-
-			continue
-		}
-
-		break
-	}
-
-	if *simpleMode {
-		fmt.Printf("%s\n%s\n", addr, key)
-	} else {
-		fmt.Printf(template, logo, addr, key, viewKey)
 	}
 }

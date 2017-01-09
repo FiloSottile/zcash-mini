@@ -33,6 +33,8 @@ $ zcash-mini
 ###############################################################
 ```
 
+You can generate vanity addresses with `-prefix` or the very, very slow `-regexp`. You can get script-friendly output with `-simple`.
+
 **This is experimental software and it will eat your money, your hard drive and your pets.**
 
 ## Use cases
@@ -44,8 +46,9 @@ $ zcash-mini
 ## Features
 
 * offline generation of z-address wallets
-* paper backup generation (TODO)
-* 150 LoC, easy to review
+* vanity addresses
+* paper / brain wallet generation (TODO)
+* 200 LoC, easy to review
 * pure Go, easy to cross-compile / deploy
 
 Balance management and spending operations are not supported.
