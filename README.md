@@ -33,7 +33,11 @@ $ zcash-mini
 ###############################################################
 ```
 
-You can generate vanity addresses with `-prefix` or the very, very slow `-regexp`. You can get script-friendly output with `-simple`.
+To re-process an existing key instead of generating a new one, use `-key`.
+
+To generate vanity addresses use `-prefix` or the very, very slow `-regexp`.
+
+To get script-friendly output use `-simple`.
 
 **This is experimental software and it will eat your money, your hard drive and your pets.**
 

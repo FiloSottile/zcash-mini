@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 
 	"github.com/FiloSottile/zcash-mini/zcash"
@@ -63,12 +65,15 @@ var template = `%s
 
 func main() {
 	simpleMode := flag.Bool("simple", false, "output only address and key")
+	existingKey := flag.Bool("key", false, "ask for an existing spending key instead of generating one")
 	vanityPrefix := flag.String("prefix", "", "search for an address with a given prefix")
-	vanityRegexp := flag.String("regexp", "", "search for an address with a given regexp - SLOW")
+	vanityRegexp := flag.String("regexp", "", "search for an address matching a given regexp - SLOW")
 	flag.Parse()
 
 	var rawKey []byte
 	switch {
+	case *existingKey:
+		rawKey = readKey()
 	case *vanityPrefix != "":
 		rawKey = zcash.GenerateVanityKey(*vanityPrefix, zcash.ProdAddress)
 	case *vanityRegexp != "":
@@ -95,6 +100,21 @@ func main() {
 	} else {
 		fmt.Printf(template, logo, addr, key, viewKey)
 	}
+}
+
+func readKey() []byte {
+	fmt.Print(`Enter a spending key ("SK" prefix): `)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	key := scanner.Text()
+	rawKey, version, err := zcash.Base58Decode(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if version != zcash.ProdSpendingKey {
+		log.Fatal("This is not a spending key.")
+	}
+	return rawKey
 }
 
 func GenerateVanityKeyRegexp(vanityRegexp string) []byte {
