@@ -15,6 +15,7 @@ var (
 	TestSpendingKey = [2]byte{0xAC, 0x08}
 	ProdAddress     = [2]byte{0x16, 0x9A}
 	TestAddress     = [2]byte{0x16, 0xB6}
+	ProdViewingKey  = [2]byte{0, 0} // Not yet specified - WILL CHANGE
 )
 
 var (
@@ -88,6 +89,15 @@ func KeyToAddress(key []byte) ([]byte, error) {
 	prfAddr(addr, key, 0)
 	copy(addr[32:], askToPKenc(key))
 	return addr, nil
+}
+
+func KeyToViewingKey(key []byte) ([]byte, error) {
+	if len(key) != 32 || key[0]&0xf0 != 0 {
+		return nil, ErrInvalidKey
+	}
+	viewKey := make([]byte, 32)
+	prfAddr(viewKey, key, 1)
+	return viewKey, nil
 }
 
 // GenerateKey generates a new raw spending key.
