@@ -1,4 +1,4 @@
-package main
+package bip39
 
 import (
 	"bytes"
@@ -36,8 +36,8 @@ func TestRandomBip39(t *testing.T) {
 		if _, err := crnd.Read(data); err != nil {
 			t.Fatal(err)
 		}
-		mnemonic := Bip39Encode(data)
-		res, c, err := Bip39Decode(mnemonic)
+		mnemonic := Encode(data)
+		res, c, err := Decode(mnemonic)
 		if err != nil {
 			t.Log("\n" + hex.Dump(data))
 			t.Fatal(err)
@@ -54,7 +54,7 @@ func TestRandomBip39(t *testing.T) {
 }
 
 func TestBip39Mistakes(t *testing.T) {
-	goodData, c, err := Bip39Decode([]string{"enter", "evidence", "garage"})
+	goodData, c, err := Decode([]string{"enter", "evidence", "garage"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestBip39Mistakes(t *testing.T) {
 		t.Fatal(c)
 	}
 
-	data, c, err := Bip39Decode([]string{"enter", "evidente", "garage"})
+	data, c, err := Decode([]string{"enter", "evidente", "garage"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestBip39Mistakes(t *testing.T) {
 		t.Fatal(c)
 	}
 
-	data, c, err = Bip39Decode([]string{"enter", "evidente", "garale"})
+	data, c, err = Decode([]string{"enter", "evidente", "garale"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestBip39Mistakes(t *testing.T) {
 		t.Fatal(c)
 	}
 
-	_, _, err = Bip39Decode([]string{"access", "chronic", "cricket", "search", "magnet", "myself", "peasant", "party", "party"})
+	_, _, err = Decode([]string{"access", "chronic", "cricket", "search", "magnet", "myself", "peasant", "party", "party"})
 	if err == nil {
 		t.Fatal("expected checksum error")
 	}

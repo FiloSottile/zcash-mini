@@ -8,7 +8,7 @@ $ go get -u github.com/FiloSottile/zcash-mini
  - or -
 
 $ git clone https://github.com/FiloSottile/zcash-mini
-$ cd zcash-mini && make && mv ./bin/zcash-mini /usr/local/bin/
+$ cd zcash-mini && make && sudo cp ./bin/zcash-mini /usr/local/bin/
 ```
 
 ```
@@ -16,19 +16,40 @@ $ zcash-mini
 
 ###############################################################
 #
-#  Here is your new z-address
+#  Here is your z-address
 #
-#      zcZvkjKo24G8LzSiU9UEvPeeu6rCYJc46bhe5dsYLqNgcR12GFCQsE6Z6w4LH3Mb82aYoGgpjRpK8VcwTesaFbpPZhmkCJe
+#      zchb1pjPZj5km3arxocST98jY27BzFqiaK2f7vLgyYgStPSuQ1dVR97ahfbz51oQM3Xb8VooGh9E5dyfMN2SJ1q1HVcsExT
 #
-#  and here is the secret key
+###############################################################
 #
-#      SKxoocXqMjxsiE3DdEguWhcbqf3vz45rpMdmVqXPwzReBBDhXj6v
+#  Here is the secret spending key
+#
+#      SKxtAQQL74P5HMN73niHX1YwYZbjBMBPzp8NQ2M35Z2TybUbjiKc
 #
 #  KEEP IT SAFE, IT HAS NOT BEEN SAVED ANYWHERE
 #
-#  To spend, import it with
+#  To spend, import the secret key with
 #
 #      zcash-cli z_importkey KEY rescan
+#
+###############################################################
+#
+#  The following is a mnemonic encoding of the secret key
+#  which you can write down as a paper wallet
+#
+#      armed fortune seek athlete humor please margin prosper
+#      spend stool weapon buzz verify radio hamster couple
+#      exercise idea stock year elder pass dune aspect
+#
+#  Run "zcash-mini -mnemonic" to rebuild your secret key
+#
+###############################################################
+#
+#  Finally, here is the viewing key
+#
+#      112TXSCh37UifeAJMmf7jcDpRiGp7krSggfqRVWqSYQNwrL8wj2Y
+#
+#  (not yet supported by the full node)
 #
 ###############################################################
 ```
@@ -38,6 +59,8 @@ To re-process an existing key instead of generating a new one, use `-key`.
 To generate vanity addresses use `-prefix` or the very, very slow `-regexp`.
 
 To get script-friendly output use `-simple`.
+
+To cross compile simply run e.g. `GOOS=linux GOARCH=arm make`.
 
 **This is experimental software and it will eat your money, your hard drive and your pets.**
 
@@ -51,8 +74,8 @@ To get script-friendly output use `-simple`.
 
 * offline generation of z-address wallets
 * vanity addresses
-* paper / brain wallet generation (TODO)
-* 200 LoC, easy to review
+* paper wallet / mnemonic generation
+* 300 LoC, easy to review
 * pure Go, easy to cross-compile / deploy
 
 Balance management and spending operations are not supported.
@@ -60,7 +83,7 @@ Balance management and spending operations are not supported.
 ## Intended workflow
 
 * generate a z-address with `zcash-mini` on a secure machine
-* optionally turn it into a paper wallet
+* optionally write down the 24 words as a paper wallet
 * receive Zcash on a t-address in a full node
 * send the Zcash to the z-address yourself
 * to spend the Zcash, export the private key to a full node

@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
+	"strings"
 
+	"github.com/FiloSottile/zcash-mini/bip39"
 	"github.com/FiloSottile/zcash-mini/zcash"
 )
 
@@ -41,15 +42,13 @@ var template = `%s
 
 ###############################################################
 #
-#  Here is your new z-address
+#  Here is your z-address
 #
 #      %s
 #
-#  and here is the secret key
+###############################################################
 #
-#      %s
-#
-#  and here is the viewing key (not yet supported by the full node)
+#  Here is the secret spending key
 #
 #      %s
 #
@@ -60,12 +59,32 @@ var template = `%s
 #      zcash-cli z_importkey KEY rescan
 #
 ###############################################################
+#
+#  The following is a mnemonic encoding of the secret key
+#  which you can write down as a paper wallet
+#      
+#      %s
+#      %s
+#      %s
+#
+#  Run "zcash-mini -mnemonic" to rebuild your secret key
+#
+###############################################################
+#
+#  Finally, here is the viewing key
+#
+#      %s
+#
+#  (not yet supported by the full node)
+#
+###############################################################
 
 `
 
 func main() {
-	simpleMode := flag.Bool("simple", false, "output only address and key")
+	simpleMode := flag.Bool("simple", false, "output only values without decoration or text")
 	existingKey := flag.Bool("key", false, "ask for an existing spending key instead of generating one")
+	mnemonicKey := flag.Bool("mnemonic", false, "rebuild the key from a mnemonic phrase")
 	vanityPrefix := flag.String("prefix", "", "search for an address with a given prefix")
 	vanityRegexp := flag.String("regexp", "", "search for an address matching a given regexp - SLOW")
 	flag.Parse()
@@ -74,6 +93,8 @@ func main() {
 	switch {
 	case *existingKey:
 		rawKey = readKey()
+	case *mnemonicKey:
+		rawKey = readMnemonic()
 	case *vanityPrefix != "":
 		rawKey = zcash.GenerateVanityKey(*vanityPrefix, zcash.ProdAddress)
 	case *vanityRegexp != "":
@@ -84,35 +105,59 @@ func main() {
 
 	rawAddr, err := zcash.KeyToAddress(rawKey)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	rawViewKey, err := zcash.KeyToViewingKey(rawKey)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
 	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
 	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
 
+	words := bip39.Encode(rawKey)
+
 	if *simpleMode {
-		fmt.Printf("%s\n%s\n", addr, key)
+		mnemonic := strings.Join(words, " ")
+		fmt.Printf("%s\n%s\n%s\n%s\n", addr, key, mnemonic, viewKey)
 	} else {
-		fmt.Printf(template, logo, addr, key, viewKey)
+		w1 := strings.Join(words[:8], " ")
+		w2 := strings.Join(words[8:16], " ")
+		w3 := strings.Join(words[16:], " ")
+		fmt.Printf(template, logo, addr, key, w1, w2, w3, viewKey)
 	}
 }
 
 func readKey() []byte {
-	fmt.Print(`Enter a spending key ("SK" prefix): `)
+	fmt.Fprint(os.Stderr, `Enter a spending key ("SK" prefix): `)
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	key := scanner.Text()
 	rawKey, version, err := zcash.Base58Decode(key)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	if version != zcash.ProdSpendingKey {
-		log.Fatal("This is not a spending key.")
+		fatal("this is not a spending key.")
+	}
+	return rawKey
+}
+
+func readMnemonic() []byte {
+	fmt.Fprint(os.Stderr, "Enter the 24 words, separated by spaces: ")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	words := strings.Split(scanner.Text(), " ")
+	if len(words) != 24 {
+		fatal("a mnemonic must be 24 words long")
+	}
+	rawKey, corrections, err := bip39.Decode(words)
+	if err != nil {
+		fatal(err)
+	}
+	for _, c := range corrections {
+		fmt.Fprintln(os.Stderr, "[INFO] Automatically corrected:", c)
 	}
 	return rawKey
 }
@@ -120,14 +165,14 @@ func readKey() []byte {
 func GenerateVanityKeyRegexp(vanityRegexp string) []byte {
 	r, err := regexp.Compile(vanityRegexp)
 	if err != nil {
-		log.Fatal("Failed to compile the regular expression:", err)
+		fatal("failed to compile the regular expression:", err)
 	}
 
 	for {
 		rawKey := zcash.GenerateKey()
 		rawAddr, err := zcash.KeyToAddress(rawKey)
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 		addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
 
@@ -135,4 +180,10 @@ func GenerateVanityKeyRegexp(vanityRegexp string) []byte {
 			return rawKey
 		}
 	}
+}
+
+func fatal(v ...interface{}) {
+	v = append([]interface{}{"[FATAL] Error:"}, v...)
+	fmt.Fprintln(os.Stderr, v...)
+	os.Exit(1)
 }

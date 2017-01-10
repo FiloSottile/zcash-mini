@@ -2,7 +2,7 @@
 // Copyright (c) 2014 Tyler Smith
 // Copyright (c) 2015 Filippo Valsorda
 
-package main
+package bip39
 
 import (
 	"crypto/sha256"
@@ -14,9 +14,9 @@ import (
 
 var last11BitsMask = big.NewInt(2048 - 1)
 
-// Bip39Encode encodes data, which must be long a multiple of 32 bits,
+// Encode encodes data, which must be long a multiple of 32 bits,
 // into a mnemonic with a cheksum, according to BIP 0039.
-func Bip39Encode(data []byte) []string {
+func Encode(data []byte) []string {
 	bitLen := len(data) * 8
 	if bitLen%32 != 0 {
 		panic("data length must be a multiple of 32 bits")
@@ -44,7 +44,7 @@ func Bip39Encode(data []byte) []string {
 	return words
 }
 
-func Bip39Decode(words []string) (data []byte, corrections []string, err error) {
+func Decode(words []string) (data []byte, corrections []string, err error) {
 	if len(words)%3 != 0 {
 		return nil, nil, errors.New("word count must be a multiple of 3")
 	}
