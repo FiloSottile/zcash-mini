@@ -100,6 +100,10 @@ func KeyToViewingKey(key []byte) ([]byte, error) {
 	viewKey := make([]byte, 64)
 	prfAddr(viewKey, key, 0)
 	prfAddr(viewKey[32:], key, 1)
+	//Clamp PRF output to a sections 4.2 and 5.4.6 of the Zcash spec
+	viewKey[32] &= 248
+	viewKey[63] &= 127
+	viewKey[63] |= 64
 	return viewKey, nil
 }
 
