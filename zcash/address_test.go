@@ -1,6 +1,9 @@
 package zcash
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 var golden = []struct{ skey, addr, vk string }{
 	{"SKxt8pwrQipUL5KgZUcBAqyLj9R1YwMuRRR3ijGMCwCCqchmi8ut", "zcJLC7a3aRJohMNCVjSZQ8jFuofhAHJNAY4aX5soDkYfgNejzKnEZbucJmVibLWCwK8dyyfDhNhf3foXDDTouweC382LcX5", "ZiVKYQyUcyAJLKwcosSeDxkGRhygFdAPWsr3m8UgjC5X85yqNyLTtJJJYNH83Wf2AQKU6TZsd65MXBZLFj6eSCAFcnCFuVCFS"},
@@ -16,7 +19,7 @@ func TestKeyToAddress(t *testing.T) {
 		if err != nil {
 			t.Fatal(i, err)
 		}
-		if version != ProdSpendingKey {
+		if bytes.Compare(version[:], ProdSpendingKey) != 0 {
 			t.Fatal(i, version)
 		}
 		rawAddr, err := KeyToAddress(key)
@@ -29,13 +32,13 @@ func TestKeyToAddress(t *testing.T) {
 			t.Fatal(i, err)
 		}
 
-		ourAddr := Base58Encode(rawAddr, ProdAddress[:])
+		ourAddr := Base58Encode(rawAddr, ProdAddress)
 
 		if g.addr != ourAddr {
 			t.Errorf("%d: addr %s, want %s", i, ourAddr, g.addr)
 		}
 
-		outVK := Base58Encode(viewingkey, ProdViewingKey[:])
+		outVK := Base58Encode(viewingkey, ProdViewingKey)
 
 		if g.vk != outVK {
 			t.Errorf("%d: addr %s, want %s", i, outVK, g.vk)
@@ -57,7 +60,7 @@ func TestGenerateVanityKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	addr := Base58Encode(rawAddr, ProdAddress[:])
+	addr := Base58Encode(rawAddr, ProdAddress)
 	if addr[:4] != "zcaa" {
 		t.Fatal(addr)
 	}
