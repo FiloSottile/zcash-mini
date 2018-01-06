@@ -75,8 +75,10 @@ var template = `%s
 #  Finally, here is the viewing key
 #
 #      %s
+#  
+#  To import your viewing key use
 #
-#  (not yet supported by the full node)
+#     zcash-cli z_importviewingkey KEY 
 #
 ###############################################################
 
