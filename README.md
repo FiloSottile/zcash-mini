@@ -56,7 +56,7 @@ $ zcash-mini
 
 To re-process an existing key instead of generating a new one, use `-key`.
 
-To generate vanity addresses use `-prefix` or the very, very slow `-regexp`.
+To generate vanity addresses use `-prefix` or the very, very slow `-regexp`. There is no GPU support, so you won't get the performance you would get with [other implementations](https://github.com/plutomonkey/zcash-vanity) (which I have not used or reviewed).
 
 To get script-friendly output use `-simple`.
 
