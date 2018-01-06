@@ -16,8 +16,8 @@ var (
 	TestSpendingKey = [2]byte{0xAC, 0x08}
 	ProdAddress     = [2]byte{0x16, 0x9A}
 	TestAddress     = [2]byte{0x16, 0xB6}
-	ProdViewingKey  = [2]byte{0x0B, 0x1C}
-	TestViewingKey  = [2]byte{0x0B, 0x2A}
+	ProdViewingKey  = [3]byte{0xA8, 0xAB, 0xD3}
+	TestViewingKey  = [3]byte{0xA8, 0xAC, 0x0C}
 )
 
 var (
@@ -48,11 +48,21 @@ func Base58Decode(s string) (result []byte, version [2]byte, err error) {
 }
 
 // Base58Encode encodes in Base58Check with two version bytes.
-func Base58Encode(data []byte, version [2]byte) string {
-	buf := make([]byte, len(data)+1)
-	buf[0] = version[1]
-	copy(buf[1:], data)
-	return base58.CheckEncode(buf, version[0])
+func Base58Encode(data []byte, version []byte) string {
+	if len(version) == 2 {
+		buf := make([]byte, len(data)+1)
+		buf[0] = version[1]
+		copy(buf[1:], data)
+		return base58.CheckEncode(buf, version[0])
+	} else if len(version) == 3 {
+		buf := make([]byte, len(data)+2)
+		buf[0] = version[1]
+		buf[1] = version[2]
+		copy(buf[2:], data)
+		return base58.CheckEncode(buf, version[0])
+	} else {
+		panic("Version must be either 2 or 3 bytes")
+	}
 }
 
 func prfAddr(dst, ask []byte, t byte) {
