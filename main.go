@@ -112,9 +112,9 @@ func main() {
 		fatal(err)
 	}
 
-	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey)
-	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
-	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey)
+	key := zcash.Base58Encode(rawKey, zcash.ProdSpendingKey[:])
+	addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress[:])
+	viewKey := zcash.Base58Encode(rawViewKey, zcash.ProdViewingKey[:])
 
 	words := bip39.Encode(rawKey)
 
@@ -174,7 +174,7 @@ func GenerateVanityKeyRegexp(vanityRegexp string) []byte {
 		if err != nil {
 			fatal(err)
 		}
-		addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress)
+		addr := zcash.Base58Encode(rawAddr, zcash.ProdAddress[:])
 
 		if r.MatchString(addr) {
 			return rawKey
