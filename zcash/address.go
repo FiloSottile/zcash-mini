@@ -12,12 +12,12 @@ import (
 )
 
 var (
-	ProdSpendingKey = [2]byte{0xAB, 0x36}
-	TestSpendingKey = [2]byte{0xAC, 0x08}
-	ProdAddress     = [2]byte{0x16, 0x9A}
-	TestAddress     = [2]byte{0x16, 0xB6}
-	ProdViewingKey  = [3]byte{0xA8, 0xAB, 0xD3}
-	TestViewingKey  = [3]byte{0xA8, 0xAC, 0x0C}
+	ProdSpendingKey = []byte{0xAB, 0x36}
+	TestSpendingKey = []byte{0xAC, 0x08}
+	ProdAddress     = []byte{0x16, 0x9A}
+	TestAddress     = []byte{0x16, 0xB6}
+	ProdViewingKey  = []byte{0xA8, 0xAB, 0xD3}
+	TestViewingKey  = []byte{0xA8, 0xAC, 0x0C}
 )
 
 var (
@@ -49,20 +49,14 @@ func Base58Decode(s string) (result []byte, version [2]byte, err error) {
 
 // Base58Encode encodes in Base58Check with two version bytes.
 func Base58Encode(data []byte, version []byte) string {
-	if len(version) == 2 {
-		buf := make([]byte, len(data)+1)
-		buf[0] = version[1]
-		copy(buf[1:], data)
+	if len(version) == 2 || len(version) == 3 {
+		var buf []byte
+		buf = append(buf, version[1:]...)
+		buf = append(buf, data...)
 		return base58.CheckEncode(buf, version[0])
-	} else if len(version) == 3 {
-		buf := make([]byte, len(data)+2)
-		buf[0] = version[1]
-		buf[1] = version[2]
-		copy(buf[2:], data)
-		return base58.CheckEncode(buf, version[0])
-	} else {
-		panic("Version must be either 2 or 3 bytes")
 	}
+	panic("Version must be either 2 or 3 bytes")
+
 }
 
 func prfAddr(dst, ask []byte, t byte) {
@@ -130,7 +124,7 @@ func GenerateKey() []byte {
 
 // GenerateVanityKey generates a raw spending key that when converted to an
 // address and encoded in Base58Check with the given version, has the given prefix.
-func GenerateVanityKey(prefix string, version [2]byte) []byte {
+func GenerateVanityKey(prefix string, version []byte) []byte {
 	key := make([]byte, 32)
 	addrHalf := make([]byte, 2+32+32+4)
 	copy(addrHalf, version[:])
