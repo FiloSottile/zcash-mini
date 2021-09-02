@@ -8,7 +8,11 @@ $ go get -u github.com/FiloSottile/zcash-mini
  - or -
 
 $ git clone https://github.com/FiloSottile/zcash-mini
-$ cd zcash-mini && make && sudo cp ./bin/zcash-mini /usr/local/bin/
+$ cd zcash-mini
+$ go mod init zcash-mini
+$ go mod tidy
+$ go build -mod=mod
+$ sudo install ./zcash-mini /usr/local/bin
 ```
 
 ```
